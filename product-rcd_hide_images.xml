@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<product productid="rcd_hide_images" active="1">
+	<title>Hide Images</title>
+	<description>Allows hiding images in posts</description>
+	<version>0.1</version>
+	<url><![CDATA[http://www.vbulletin.org/forum/misc.php?do=producthelp&pid=rcd_hide_images]]></url>
+	<versioncheckurl><![CDATA[http://www.vbulletin.org/forum/misc.php?do=productcheck&pid=rcd_hide_images]]></versioncheckurl>
+	<apm_releasedate>0</apm_releasedate>
+	<apm_author />
+	<apm_relatedurl />
+	<apm_extrainfo />
+	<apm_extraedit />
+	<dependencies>
+	</dependencies>
+	<codes>
+		<code version="0.1">
+			<installcode><![CDATA[$db->query_write("
+ALTER TABLE " . TABLE_PREFIX . "user
+ADD rcd_hide_images TINYINT( 1 ) NOT NULL DEFAULT '0'
+");]]></installcode>
+			<uninstallcode><![CDATA[$db->query_write("
+ALTER TABLE " . TABLE_PREFIX . "user
+DROP rcd_hide_images
+");]]></uninstallcode>
+		</code>
+	</codes>
+	<templates>
+		<template name="rcd_hi_global_btn" templatetype="template" date="1289047045" username="ruseinov" version="0.1"><![CDATA[<vb:if condition="$showimages">
+<li class="popupmenu"><h6><a class="firstunread" style="background:none; color: {vb:stylevar toolsmenu_color};" href="{vb:raw hi_global_url}">{vb:rawphrase hi_hide_glob_txt} </a></h6></li>
+<vb:else />
+<li class="popupmenu"><h6><a class="firstunread" style="background:none; color: {vb:stylevar toolsmenu_color};" href="{vb:raw hi_global_url}">{vb:rawphrase hi_show_glob_txt} </a></h6></li>
+</vb:if>]]></template>
+		<template name="rcd_hi_show_btn" templatetype="template" date="1289046955" username="ruseinov" version="0.1"><![CDATA[<vb:if condition="$show['rcd_hi_button']">
+  <div style="float:right; padding: {vb:stylevar padding}; padding-{vb:stylevar right}: 0;">
+  <a href="javascript://" class="textcontrol" style="cursor:pointer;" onclick="return display_post({vb:raw post.postid});" rel="nofollow">{vb:rawphrase hi_show_btn_text} ({vb:raw show.rcd_hi_img_num})</a>
+  </div>
+  <vb:if condition="!$post['title'] AND !$show['messageicon']">
+    <div style="clear:both;"></div>
+  </vb:if>
+</vb:if>]]></template>
+	</templates>
+	<stylevardfns>
+	</stylevardfns>
+	<stylevars>
+	</stylevars>
+	<plugins>
+		<plugin active="1" executionorder="5">
+			<title>Cache templates</title>
+			<hookname>cache_templates</hookname>
+			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread')
+{
+    $cache[] = 'rcd_hi_show_btn';
+    $cache[] = 'rcd_hi_global_btn';
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Save show/hide images setting</title>
+			<hookname>misc_start</hookname>
+			<phpcode><![CDATA[if (isset($_REQUEST['rcd_hide_images']) && !$show['guest'])
+{
+    $userdata =& datamanager_init('User', $vbulletin, ERRTYPE_STANDARD);
+    $userdata->set_existing($vbulletin->userinfo);
+
+    if ($_REQUEST['rcd_hide_images'] == 1)
+    {
+        $userdata->set('rcd_hide_images', 1);  
+        $rcd_hi_redir = 'hi_redir_msg_hide';
+    }
+    elseif ($_REQUEST['rcd_hide_images'] == 0)
+    {
+        $userdata->set('rcd_hide_images', 0);  
+        $rcd_hi_redir = 'hi_redir_msg_show';
+    }
+
+    $userdata->save();
+    
+    $vbulletin->url = fetch_seo_url('thread', $threadinfo, array('page' => intval($_REQUEST['pagenumber'])));
+    eval(print_standard_redirect($rcd_hi_redir, true, true));
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="1">
+			<title>Add template hook to thread toolbar</title>
+			<hookname>parse_templates</hookname>
+			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread' && !$show['guest'])
+{
+    $search = 'if ($show[\'firstunreadlink\'])';
+    $replace = '$final_rendered .= $template_hook[\'showthread_thrd_ctrls_start\'];
+                if ($show[\'firstunreadlink\'])';
+                        
+    $vbulletin->templatecache['SHOWTHREAD'] = str_replace($search, $replace, $vbulletin->templatecache['SHOWTHREAD']);
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Render "show" button template]]></title>
+			<hookname>postbit_display_complete</hookname>
+			<phpcode><![CDATA[$rcd_hi_templater = vB_Template::create('rcd_hi_show_btn');
+$rcd_hi_templater->register('post', $this->post);
+$template_hook['postbit_messagearea_start'] .= $rcd_hi_templater->render();]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Check for attachments and set flag</title>
+			<hookname>postbit_display_start</hookname>
+			<phpcode><![CDATA[global $vbulletin;
+
+if (!$vbulletin->userinfo['showimages'] && !$show['guest'])
+{
+    $rcd_hi_atchmnt_cnt = count($this->post['attachments']);
+    
+    if ($rcd_hi_atchmnt_cnt)
+    {
+        $show['rcd_hi_button'] = true;
+        $show['rcd_hi_img_num'] += $rcd_hi_atchmnt_cnt;
+    }     
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Count hidden images in post text</title>
+			<hookname>showthread_postbit_create</hookname>
+			<phpcode><![CDATA[if (!$vbulletin->userinfo['showimages'])
+{   
+    $show['rcd_hi_button'] = false;
+    $show['rcd_hi_img_num'] = 0;
+     
+    if (preg_match_all('#\[img\]\s*(https?://([^*\r\n]+|[a-z0-9/\\._\- !]+))\[/img\]#iUe', $post['pagetext'], $rcd_hi_matches))
+    {
+        $show['rcd_hi_button'] = true;
+        $show['rcd_hi_img_num'] += count($rcd_hi_matches[2]);          
+    } 
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Show/hide images, construct url, render template</title>
+			<hookname>showthread_start</hookname>
+			<phpcode><![CDATA[$hi_url_param = 1;
+
+if ($vbulletin->userinfo['showimages'] && $vbulletin->userinfo['rcd_hide_images'])
+{
+    $vbulletin->userinfo['showimages'] = 0;  
+    $show['postloader_js'] = 1;  
+    $hi_url_param = 0;
+}
+
+$hi_global_url = '/misc.php?t=' . $threadinfo['threadid'] . '&rcd_hide_images=' . $hi_url_param . '&pagenumber=' . $vbulletin->GPC['pagenumber'];
+
+$rcd_hi_templater = vB_Template::create('rcd_hi_global_btn');
+$rcd_hi_templater->register('hi_global_url', $hi_global_url);
+$rcd_hi_templater->register('showimages', $vbulletin->userinfo['showimages']);
+
+$template_hook['showthread_thrd_ctrls_start'] = $rcd_hi_templater->render();]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Make rcd_hide_images valid.</title>
+			<hookname>userdata_start</hookname>
+			<phpcode><![CDATA[$this->validfields['rcd_hide_images'] = array(TYPE_UINT, REQ_NO);]]></phpcode>
+		</plugin>
+	</plugins>
+	<phrases>
+		<phrasetype name="Front-End Redirect Messages" fieldname="frontredirect">
+			<phrase name="hi_redir_msg_hide" date="1289043301" username="ruseinov" version=""><![CDATA[Images are now hidden]]></phrase>
+			<phrase name="hi_redir_msg_show" date="1289043333" username="ruseinov" version=""><![CDATA[Images are now shown]]></phrase>
+		</phrasetype>
+		<phrasetype name="Show Thread" fieldname="showthread">
+			<phrase name="hi_hide_glob_txt" date="1289047002" username="ruseinov" version=""><![CDATA[Hide images]]></phrase>
+			<phrase name="hi_show_btn_text" date="1289046968" username="ruseinov" version=""><![CDATA[Show images]]></phrase>
+			<phrase name="hi_show_glob_txt" date="1289047021" username="ruseinov" version=""><![CDATA[Show images]]></phrase>
+		</phrasetype>
+	</phrases>
+	<options>
+	</options>
+	<helptopics>
+	</helptopics>
+	<cronentries>
+	</cronentries>
+	<faqentries>
+	</faqentries>
+	<templateedits>
+	</templateedits>
+</product>

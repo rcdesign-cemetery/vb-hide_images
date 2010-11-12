@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<language name="Russian (RU)" vbversion="4.0.8" product="rcd_hide_images" type="custom">
+	<settings>
+		<options><![CDATA[1]]></options>
+		<languagecode><![CDATA[ru]]></languagecode>
+		<charset><![CDATA[UTF-8]]></charset>
+		<imagesoverride />
+		<dateoverride><![CDATA[d.m.Y]]></dateoverride>
+		<timeoverride><![CDATA[H:i]]></timeoverride>
+		<registereddateoverride><![CDATA[d.m.Y]]></registereddateoverride>
+		<calformat1override><![CDATA[d.m.Y]]></calformat1override>
+		<calformat2override><![CDATA[d.m]]></calformat2override>
+		<logdateoverride><![CDATA[H:i, d.m.Y]]></logdateoverride>
+		<locale />
+		<decimalsep><![CDATA[.]]></decimalsep>
+		<thousandsep><![CDATA[,]]></thousandsep>
+	</settings>
+	<phrasetype name="Front-End Redirect Messages" fieldname="frontredirect">
+		<phrase name="hi_redir_msg_hide" date="1289043301" username="ruseinov"><![CDATA[Картинки выключены]]></phrase>
+		<phrase name="hi_redir_msg_show" date="1289043333" username="ruseinov"><![CDATA[Картинки включены]]></phrase>
+	</phrasetype>
+	<phrasetype name="Show Thread" fieldname="showthread">
+		<phrase name="hi_hide_glob_txt" date="1289047002" username="ruseinov"><![CDATA[Скрыть картинки]]></phrase>
+		<phrase name="hi_show_btn_text" date="1289046968" username="ruseinov"><![CDATA[Показать картинки]]></phrase>
+		<phrase name="hi_show_glob_txt" date="1289047021" username="ruseinov"><![CDATA[Показать картинки]]></phrase>
+	</phrasetype>
+</language>
