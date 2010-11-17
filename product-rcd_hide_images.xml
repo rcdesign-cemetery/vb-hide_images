@@ -107,23 +107,13 @@ DROP rcd_hide_images
                 if ($show[\'firstunreadlink\'])';
                         
     $vbulletin->templatecache['SHOWTHREAD'] = str_replace($search, $replace, $vbulletin->templatecache['SHOWTHREAD']);
-    unset($search);
-    unset($replace);
 }
 
 if (array_key_exists('bbcode_video', $vbulletin->templatecache))
 {
-    // Template start
-    $search[0] = '$final_rendered = \'\' . \'\'; if';
-    
-    // Template end
-    $search[1] = '$final_rendered .= \'\';
-		}$final_rendered .= \'\' . \' \';';
-    $replace[0] = '$final_rendered = \'\' . \'<!--tag:video=\' . $url . \'-->\'; if ';
-    $replace[1] = '$final_rendered .= \'\';
-		}$final_rendered .= \'\' . \'<!--/tag:video--> \';';
-
-    $vbulletin->templatecache['bbcode_video'] = str_replace($search, $replace, $vbulletin->templatecache['bbcode_video']);
+    $hi_tag_open = '$final_rendered .= \'<!--tag:video=\' . $url . \'-->';
+    $hi_tag_close = '<!--/tag:video-->\';';
+    $vbulletin->templatecache['bbcode_video'] = $hi_tag_open . vb_Template::fetch_template_raw('bbcode_video') . $hi_tag_close;
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
