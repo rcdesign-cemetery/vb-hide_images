@@ -3,7 +3,7 @@
 <product productid="rcd_hide_images" active="1">
 	<title>Hide Images</title>
 	<description>Allows hiding images in posts</description>
-	<version>0.1</version>
+	<version>0.2</version>
 	<url><![CDATA[http://www.vbulletin.org/forum/misc.php?do=producthelp&pid=rcd_hide_images]]></url>
 	<versioncheckurl><![CDATA[http://www.vbulletin.org/forum/misc.php?do=productcheck&pid=rcd_hide_images]]></versioncheckurl>
 	<apm_releasedate>0</apm_releasedate>
@@ -55,6 +55,24 @@ DROP rcd_hide_images
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
+			<title>Show/hide videos</title>
+			<hookname>global_complete</hookname>
+			<phpcode><![CDATA[if (strpos($output, 'tag:video'))
+{   
+    $search = '/(<!\-\-tag:video=)(.+?)(\-\->)(.+?)(<!\-\-\/tag:video\-\->)/s';
+    
+    // Show video
+    $replace = '\\4';
+    
+    // Show link if images are hidden
+    if (!$vbulletin->userinfo['showimages'])
+    {
+        $replace = '<a href="\\2">\\2</a>';   
+    }
+    $output = preg_replace($search, $replace, $output);
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
 			<title>Save show/hide images setting</title>
 			<hookname>misc_start</hookname>
 			<phpcode><![CDATA[if (isset($_REQUEST['rcd_hide_images']) && !$show['guest'])
@@ -80,7 +98,7 @@ DROP rcd_hide_images
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="1">
-			<title>Add template hook to thread toolbar</title>
+			<title>Template modifications</title>
 			<hookname>parse_templates</hookname>
 			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread' && !$show['guest'])
 {
@@ -89,6 +107,23 @@ DROP rcd_hide_images
                 if ($show[\'firstunreadlink\'])';
                         
     $vbulletin->templatecache['SHOWTHREAD'] = str_replace($search, $replace, $vbulletin->templatecache['SHOWTHREAD']);
+    unset($search);
+    unset($replace);
+}
+
+if (array_key_exists('bbcode_video', $vbulletin->templatecache))
+{
+    // Template start
+    $search[0] = '$final_rendered = \'\' . \'\'; if';
+    
+    // Template end
+    $search[1] = '$final_rendered .= \'\';
+		}$final_rendered .= \'\' . \' \';';
+    $replace[0] = '$final_rendered = \'\' . \'<!--tag:video=\' . $url . \'-->\'; if ';
+    $replace[1] = '$final_rendered .= \'\';
+		}$final_rendered .= \'\' . \'<!--/tag:video--> \';';
+
+    $vbulletin->templatecache['bbcode_video'] = str_replace($search, $replace, $vbulletin->templatecache['bbcode_video']);
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
@@ -115,18 +150,21 @@ if (!$vbulletin->userinfo['showimages'] && !$show['guest'])
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
-			<title>Count hidden images in post text</title>
+			<title>Count hidden images and videos in post text</title>
 			<hookname>showthread_postbit_create</hookname>
 			<phpcode><![CDATA[if (!$vbulletin->userinfo['showimages'])
 {   
     $show['rcd_hi_button'] = false;
     $show['rcd_hi_img_num'] = 0;
-     
-    if (preg_match_all('#\[img\]\s*(https?://([^*\r\n]+|[a-z0-9/\\._\- !]+))\[/img\]#iUe', $post['pagetext'], $rcd_hi_matches))
+    
+    $show['rcd_hi_img_num'] += substr_count($post['pagetext'], '[/img]'); 
+    $show['rcd_hi_img_num'] += substr_count($post['pagetext'], '[/video]');
+
+    if ($show['rcd_hi_img_num'])
     {
-        $show['rcd_hi_button'] = true;
-        $show['rcd_hi_img_num'] += count($rcd_hi_matches[2]);          
-    } 
+        $show['rcd_hi_button'] = true;    
+    }
+   
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
@@ -153,6 +191,17 @@ $template_hook['showthread_thrd_ctrls_start'] = $rcd_hi_templater->render();]]><
 			<title>Make rcd_hide_images valid.</title>
 			<hookname>userdata_start</hookname>
 			<phpcode><![CDATA[$this->validfields['rcd_hide_images'] = array(TYPE_UINT, REQ_NO);]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Remove video comments from xml</title>
+			<hookname>xml_print_output</hookname>
+			<phpcode><![CDATA[if (strpos($this->doc, 'tag:video'))
+{   
+    $search = '/(<!\-\-tag:video=)(.+?)(\-\->)(.+?)(<!\-\-\/tag:video\-\->)/s';
+    $replace = '\\4';
+ 
+    $this->doc = preg_replace($search, $replace, $this->doc);
+}]]></phpcode>
 		</plugin>
 	</plugins>
 	<phrases>
