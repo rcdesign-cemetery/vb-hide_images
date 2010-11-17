@@ -31,12 +31,12 @@ DROP rcd_hide_images
 <vb:else />
 <li class="popupmenu"><h6><a class="firstunread" style="background:none; color: {vb:stylevar toolsmenu_color};" href="{vb:raw hi_global_url}">{vb:rawphrase hi_show_glob_txt} </a></h6></li>
 </vb:if>]]></template>
-		<template name="rcd_hi_show_btn" templatetype="template" date="1289046955" username="ruseinov" version="0.1"><![CDATA[<vb:if condition="$show['rcd_hi_button']">
+		<template name="rcd_hi_show_btn" templatetype="template" date="1290024444" username="Vitaly" version="0.2"><![CDATA[<vb:if condition="$show['rcd_hi_button']">
   <div style="float:right; padding: {vb:stylevar padding}; padding-{vb:stylevar right}: 0;">
   <a href="javascript://" class="textcontrol" style="cursor:pointer;" onclick="return display_post({vb:raw post.postid});" rel="nofollow">{vb:rawphrase hi_show_btn_text} ({vb:raw show.rcd_hi_img_num})</a>
   </div>
   <vb:if condition="!$post['title'] AND !$show['messageicon']">
-    <div style="clear:both;"></div>
+    <div class="title">&nbsp;</div>
   </vb:if>
 </vb:if>]]></template>
 	</templates>
