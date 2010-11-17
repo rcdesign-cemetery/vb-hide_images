@@ -6,11 +6,6 @@
 	<version>0.2</version>
 	<url><![CDATA[http://www.vbulletin.org/forum/misc.php?do=producthelp&pid=rcd_hide_images]]></url>
 	<versioncheckurl><![CDATA[http://www.vbulletin.org/forum/misc.php?do=productcheck&pid=rcd_hide_images]]></versioncheckurl>
-	<apm_releasedate>0</apm_releasedate>
-	<apm_author />
-	<apm_relatedurl />
-	<apm_extrainfo />
-	<apm_extraedit />
 	<dependencies>
 	</dependencies>
 	<codes>
@@ -31,12 +26,12 @@ DROP rcd_hide_images
 <vb:else />
 <li class="popupmenu"><h6><a class="firstunread" style="background:none; color: {vb:stylevar toolsmenu_color};" href="{vb:raw hi_global_url}">{vb:rawphrase hi_show_glob_txt} </a></h6></li>
 </vb:if>]]></template>
-		<template name="rcd_hi_show_btn" templatetype="template" date="1289046955" username="ruseinov" version="0.1"><![CDATA[<vb:if condition="$show['rcd_hi_button']">
+		<template name="rcd_hi_show_btn" templatetype="template" date="1290015966" username="Vitaly" version="0.2"><![CDATA[<vb:if condition="$show['rcd_hi_button']">
   <div style="float:right; padding: {vb:stylevar padding}; padding-{vb:stylevar right}: 0;">
   <a href="javascript://" class="textcontrol" style="cursor:pointer;" onclick="return display_post({vb:raw post.postid});" rel="nofollow">{vb:rawphrase hi_show_btn_text} ({vb:raw show.rcd_hi_img_num})</a>
   </div>
   <vb:if condition="!$post['title'] AND !$show['messageicon']">
-    <div style="clear:both;"></div>
+    <div class="title">&nbsp;</div>
   </vb:if>
 </vb:if>]]></template>
 	</templates>
@@ -107,13 +102,23 @@ DROP rcd_hide_images
                 if ($show[\'firstunreadlink\'])';
                         
     $vbulletin->templatecache['SHOWTHREAD'] = str_replace($search, $replace, $vbulletin->templatecache['SHOWTHREAD']);
+    unset($search);
+    unset($replace);
 }
 
 if (array_key_exists('bbcode_video', $vbulletin->templatecache))
 {
-    $hi_tag_open = '$final_rendered .= \'<!--tag:video=\' . $url . \'-->';
-    $hi_tag_close = '<!--/tag:video-->\';';
-    $vbulletin->templatecache['bbcode_video'] = $hi_tag_open . vb_Template::fetch_template_raw('bbcode_video') . $hi_tag_close;
+    // Template start
+    $search[0] = '$final_rendered = \'\' . \'\'; if';
+    
+    // Template end
+    $search[1] = '$final_rendered .= \'\';
+		}$final_rendered .= \'\' . \' \';';
+    $replace[0] = '$final_rendered = \'\' . \'<!--tag:video=\' . $url . \'-->\'; if ';
+    $replace[1] = '$final_rendered .= \'\';
+		}$final_rendered .= \'\' . \'<!--/tag:video--> \';';
+
+    $vbulletin->templatecache['bbcode_video'] = str_replace($search, $replace, $vbulletin->templatecache['bbcode_video']);
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
