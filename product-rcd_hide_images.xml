@@ -59,15 +59,15 @@ DROP rcd_hide_images
 			<hookname>global_complete</hookname>
 			<phpcode><![CDATA[if (strpos($output, 'tag:video'))
 {   
-    $search = '/(<!\-\-tag:video=)(.+?)(\-\->)(.+?)(<!\-\-\/tag:video\-\->)/s';
+    $search = '/<!\-\-tag:video=(.+?)\-\->(.+?)<!\-\-\/tag:video\-\->/s';
     
     // Show video
-    $replace = '\\4';
+    $replace = '\\2';
     
     // Show link if images are hidden
     if (!$vbulletin->userinfo['showimages'])
     {
-        $replace = '<a href="\\2">\\2</a>';   
+        $replace = '<a href="\\1">\\1</a>';   
     }
     $output = preg_replace($search, $replace, $output);
 }]]></phpcode>
@@ -119,9 +119,12 @@ if (array_key_exists('bbcode_video', $vbulletin->templatecache))
 		<plugin active="1" executionorder="5">
 			<title><![CDATA[Render "show" button template]]></title>
 			<hookname>postbit_display_complete</hookname>
-			<phpcode><![CDATA[$rcd_hi_templater = vB_Template::create('rcd_hi_show_btn');
-$rcd_hi_templater->register('post', $this->post);
-$template_hook['postbit_messagearea_start'] .= $rcd_hi_templater->render();]]></phpcode>
+			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread')
+{
+    $rcd_hi_templater = vB_Template::create('rcd_hi_show_btn');
+    $rcd_hi_templater->register('post', $this->post);
+    $template_hook['postbit_messagearea_start'] .= $rcd_hi_templater->render();
+}]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
 			<title>Check for attachments and set flag</title>
@@ -187,8 +190,8 @@ $template_hook['showthread_thrd_ctrls_start'] = $rcd_hi_templater->render();]]><
 			<hookname>xml_print_output</hookname>
 			<phpcode><![CDATA[if (strpos($this->doc, 'tag:video'))
 {   
-    $search = '/(<!\-\-tag:video=)(.+?)(\-\->)(.+?)(<!\-\-\/tag:video\-\->)/s';
-    $replace = '\\4';
+    $search = '/<!\-\-tag:video=(.+?)\-\->(.+?)<!\-\-\/tag:video\-\->/s';
+    $replace = '\\2';
  
     $this->doc = preg_replace($search, $replace, $this->doc);
 }]]></phpcode>
