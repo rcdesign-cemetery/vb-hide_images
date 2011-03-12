@@ -102,11 +102,29 @@ DROP rcd_hide_images
 			<hookname>parse_templates</hookname>
 			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread' && !$show['guest'])
 {
+    $before_patch = $vbulletin->templatecache['SHOWTHREAD'];
+
     $search = 'if ($show[\'firstunreadlink\'])';
     $replace = '$final_rendered .= $template_hook[\'showthread_thrd_ctrls_start\'];
                 if ($show[\'firstunreadlink\'])';
                         
     $vbulletin->templatecache['SHOWTHREAD'] = str_replace($search, $replace, $vbulletin->templatecache['SHOWTHREAD']);
+
+    if ($before_patch == $vbulletin->templatecache['SHOWTHREAD'])
+    {
+        $err_message = sprintf("Product '%s', error in hook %s : can't modify template '%s'",
+                            'Hide images',
+                            'parse_templates',
+                            'SHOWTHREAD');
+        error_log($err_message);           // Send to PHP error log
+        if ($vbulletin->debug)
+        {
+            trigger_error($err_message, E_USER_WARNING); // Display on page
+            require_once(DIR . '/includes/functions_log_error.php');
+            log_vbulletin_error($err_message, 'php');    // Send to vB error log
+        }
+        unset($err_message, $before_patch);
+    }
 }
 
 if (array_key_exists('bbcode_video', $vbulletin->templatecache))
